@@ -8,7 +8,7 @@ Turns images like this:
 
 Into this:
 
-![[haha_conan_is_an_alligator_[conangif]_.gif]]
+![[haha_conan_is_an_alligator.gif]]
 
 
 
