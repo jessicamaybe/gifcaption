@@ -3,12 +3,10 @@
 Makes a gif with text above it like on iFunny
 
 Turns images like this:
-
-![alt text](./examples/conan.gif)
+![conan meme](./examples/conan.gif)
 
 Into this:
-
-![[haha_conan_is_an_alligator.gif]]
+![conan meme](./examples/haha_conan_is_an_alligator.gif)
 
 
 
