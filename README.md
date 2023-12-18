@@ -3,14 +3,16 @@
 Makes a gif with text above it like on iFunny
 
 Turns images like this:
+
 ![conan meme](./examples/conan.gif)
 
 Into this:
+
 ![conan meme](./examples/haha_conan_is_an_alligator.gif)
 
 
 
-usage: 
+# Using 
 
 ```
 python captiongif.py [-i INPUT] string`
