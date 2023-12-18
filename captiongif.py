@@ -3,20 +3,25 @@ import textwrap
 import io
 import sys
 import argparse
+import re
+from pathlib import Path
 
 parser = argparse.ArgumentParser(prog='Gif Captioner', description='Captions your gifs like the funny iFunny gifs')
 
-parser.add_argument('filename')           # positional argument
-parser.add_argument('-s', '--string')      # option that takes a value
+parser.add_argument('-i', '--input')
+parser.add_argument('string')
 args = vars(parser.parse_args())
 
 message = args["string"]
-inputFile = args["filename"]
+inputFile = args["input"]
 
 #inputFile = sys.argv[1]
 
-
-originalGif = Image.open(inputFile)
+if inputFile.endswith('.gif'):
+    originalGif = Image.open(inputFile)
+else:
+    print("Input file is not a gif!")
+    exit(1)
 
 #font size of 32
 font = ImageFont.truetype("Roboto-Black.ttf", 32)
@@ -96,7 +101,7 @@ for frame in ImageSequence.Iterator(originalGif):
 frames[0].info = originalGif.info
 
 #making the cool filename
-inputFileName = inputFile.split('.')
-filename = "_".join(messageSplit[:6]) + "_[" + inputFileName[0] + "]_" + ".gif"
+outputFilename = "_".join(messageSplit[:6]) + "_[" + Path(inputFile).stem + "gif]_" + ".gif"
 
-frames[0].save(filename, save_all=True, append_images=frames[1:])
+#saving final gif
+frames[0].save(outputFilename, save_all=True, append_images=frames[1:])
