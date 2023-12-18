@@ -1,0 +1,102 @@
+from PIL import Image, ImageDraw, ImageSequence, ImageFont
+import textwrap
+import io
+import sys
+import argparse
+
+parser = argparse.ArgumentParser(prog='Gif Captioner', description='Captions your gifs like the funny iFunny gifs')
+
+parser.add_argument('filename')           # positional argument
+parser.add_argument('-s', '--string')      # option that takes a value
+args = vars(parser.parse_args())
+
+message = args["string"]
+inputFile = args["filename"]
+
+#inputFile = sys.argv[1]
+
+
+originalGif = Image.open(inputFile)
+
+#font size of 32
+font = ImageFont.truetype("Roboto-Black.ttf", 32)
+
+def resize_gif(gif, Width):
+    frames = []
+    for frame in ImageSequence.Iterator(gif):
+        new_gif = frame.copy()
+        widthPercent = (Width / float(new_gif.size[0]))
+        hsize = int((float(new_gif.size[1]) * float(widthPercent)))
+        new_gif = new_gif.resize((Width, hsize), Image.Resampling.LANCZOS)
+        frames.append(new_gif)
+
+    frames[0].info = originalGif.info
+    fobj = io.BytesIO()
+    frames[0].save(fobj, 'GIF', save_all=True, append_images=frames[1:])
+    return Image.open(fobj)
+
+
+# if the gif is too small we scale it up and change the font size to 28
+if originalGif.height < 360:
+    #baseWidth = 360
+    font = ImageFont.truetype("Roboto-Black.ttf", 28)
+    originalGif = resize_gif(originalGif, 360)
+
+
+#frames = ImageSequence.Iterator(originalGif)
+newGif = originalGif.copy()
+newGif.thumbnail((480, 360)) #just to get new size properly
+
+
+captionText = Image.new(mode="RGB", size=(newGif.width, newGif.height + 1000), color="white")
+draw = ImageDraw.Draw(captionText)
+
+
+W = newGif.width
+H = newGif.height + 1000
+
+
+#message = sys.argv[2]
+messageSplit = message.split(' ')
+messageWrap = textwrap.wrap(message, width=24)
+
+messageFill = textwrap.fill(message, width=24)
+
+_, _, _, line_height = font.getbbox(message)
+
+
+current_h = line_height
+lineCount = 0
+
+for line in messageWrap:
+    _, _, w, h = draw.textbbox((0, 0), line, font=font)
+    draw.text(((W - w) / 2, current_h), line, font=font, fill="black")
+    current_h += line_height
+    lineCount += 1
+
+
+#crop to make make message fit nice
+_, cropTop, _, cropBottom = font.getbbox(messageFill)
+captionText = captionText.crop((0, 0, W, lineCount * line_height + line_height + line_height))
+
+#captionText = captionText.resize((originalGif.width, originalGif.height))
+
+frames = []
+
+for frame in ImageSequence.Iterator(originalGif):
+    frame = frame.copy()
+    frame.thumbnail((480, 360))
+
+    new_frame = Image.new('RGB', (newGif.width, newGif.height + captionText.height), color="white")
+    new_frame.paste(captionText, (0, 0))
+    new_frame.paste(frame, (0, captionText.height))
+    frames.append(new_frame)
+
+
+frames[0].info = originalGif.info
+
+#making the cool filename
+inputFileName = inputFile.split('.')
+filename = "_".join(messageSplit[:6]) + "_[" + inputFileName[0] + "]_" + ".gif"
+
+frames[0].save(filename, save_all=True, append_images=frames[1:])
