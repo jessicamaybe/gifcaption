@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from PIL import Image, ImageDraw, ImageSequence, ImageFont
 import textwrap
 import io
@@ -46,6 +48,12 @@ if originalGif.height < 360:
     #baseWidth = 360
     font = ImageFont.truetype("Roboto-Black.ttf", 28)
     originalGif = resize_gif(originalGif, 360)
+
+
+#weird ratio edge case
+ratio = originalGif.height / originalGif.width
+if originalGif.width <= 360 and ratio > 1.2 :
+    font = ImageFont.truetype("Roboto-Black.ttf", 22)
 
 
 #frames = ImageSequence.Iterator(originalGif)
