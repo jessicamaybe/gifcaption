@@ -25,8 +25,10 @@ else:
     print("Input file is not a gif!")
     exit(1)
 
+fontName = "futura_black.otf"
+
 #font size of 32
-font = ImageFont.truetype("Roboto-Black.ttf", 32)
+font = ImageFont.truetype(fontName, 32)
 
 def resize_gif(gif, Width):
     frames = []
@@ -42,18 +44,37 @@ def resize_gif(gif, Width):
     frames[0].save(fobj, 'GIF', save_all=True, append_images=frames[1:])
     return Image.open(fobj)
 
+lineWrapMax = 24
 
-# if the gif is too small we scale it up and change the font size to 28
+# if the gif is too small we scale it up and change the font size and linewrap max
 if originalGif.height < 360:
     #baseWidth = 360
-    font = ImageFont.truetype("Roboto-Black.ttf", 28)
+    #print("baby size")
+    font = ImageFont.truetype(fontName, 28)
     originalGif = resize_gif(originalGif, 360)
 
-
-#weird ratio edge case
+# weird ratio edge case, change font size and change linewrap
 ratio = originalGif.height / originalGif.width
-if originalGif.width <= 360 and ratio > 1.2 :
-    font = ImageFont.truetype("Roboto-Black.ttf", 26)
+if ratio >= 1.0 :
+    #print("weird ratio")
+    font = ImageFont.truetype(fontName, 28)
+    lineWrapMax = 20
+
+#more weird ratio edge cases
+if ratio <= 1.8 and ratio >= 1.4:
+    #print("tall ratio")
+    font = ImageFont.truetype(fontName, 28)
+    lineWrapMax = 14
+
+messageSplit = message.split(' ')
+messageWrap = textwrap.wrap(message, width=lineWrapMax)
+messageFill = textwrap.fill(message, width=lineWrapMax)
+
+
+# big text if short message
+if len(messageWrap) == 1 and (len(message) < 14):
+    #print("weird ratio")
+    font = ImageFont.truetype(fontName, 48)
 
 
 #frames = ImageSequence.Iterator(originalGif)
@@ -68,16 +89,7 @@ draw = ImageDraw.Draw(captionText)
 W = newGif.width
 H = newGif.height + 1000
 
-
-#message = sys.argv[2]
-messageSplit = message.split(' ')
-messageWrap = textwrap.wrap(message, width=24)
-
-messageFill = textwrap.fill(message, width=24)
-
 _, _, _, line_height = font.getbbox(message)
-
-
 current_h = line_height
 lineCount = 0
 
