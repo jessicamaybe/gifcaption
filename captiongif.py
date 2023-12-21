@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-from PIL import Image, ImageDraw, ImageSequence, ImageFont
+from PIL import Image, ImageDraw, ImageSequence, ImageFont, GifImagePlugin
 import textwrap
 import io
 import sys
 import argparse
 import re
 from pathlib import Path
+
+GifImagePlugin.LOADING_STRATEGY = GifImagePlugin.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
 
 parser = argparse.ArgumentParser(prog='Gif Captioner', description='Captions your gifs like the funny iFunny gifs')
 
@@ -17,7 +19,7 @@ args = vars(parser.parse_args())
 message = args["string"]
 inputFile = args["input"]
 
-#inputFile = sys.argv[1]
+# inputFile = sys.argv[1]
 
 if inputFile.endswith('.gif'):
     originalGif = Image.open(inputFile)
@@ -27,8 +29,9 @@ else:
 
 fontName = "futura_black.otf"
 
-#font size of 32
+# font size of 32
 font = ImageFont.truetype(fontName, 32)
+
 
 def resize_gif(gif, Width):
     frames = []
@@ -37,12 +40,14 @@ def resize_gif(gif, Width):
         widthPercent = (Width / float(new_gif.size[0]))
         hsize = int((float(new_gif.size[1]) * float(widthPercent)))
         new_gif = new_gif.resize((Width, hsize), Image.Resampling.LANCZOS)
-        frames.append(new_gif)
+        new_gif.info = frame.info
+        frames.insert(0, new_gif)
 
     frames[0].info = originalGif.info
     fobj = io.BytesIO()
-    frames[0].save(fobj, 'GIF', save_all=True, append_images=frames[1:])
+    frames[0].save(fobj, 'GIF', save_all=True, append_images=frames[1:], optimize=False, disposal=2)
     return Image.open(fobj)
+
 
 lineWrapMax = 24
 
@@ -60,9 +65,9 @@ if ratio >= 1.0 :
     font = ImageFont.truetype(fontName, 28)
     lineWrapMax = 20
 
-#more weird ratio edge cases
+# more weird ratio edge cases
 if ratio <= 1.8 and ratio >= 1.4:
-    #print("tall ratio")
+    # print("tall ratio")
     font = ImageFont.truetype(fontName, 28)
     lineWrapMax = 14
 
@@ -77,12 +82,12 @@ if len(messageWrap) == 1 and (len(message) < 14):
     font = ImageFont.truetype(fontName, 48)
 
 
-#frames = ImageSequence.Iterator(originalGif)
+# frames = ImageSequence.Iterator(originalGif)
 newGif = originalGif.copy()
-newGif.thumbnail((480, 360)) #just to get new size properly
+newGif.thumbnail((480, 360)) # just to get new size properly
 
 
-captionText = Image.new(mode="RGB", size=(newGif.width, newGif.height + 1000), color="white")
+captionText = Image.new(mode="RGBA", size=(newGif.width, newGif.height + 1000), color="white")
 draw = ImageDraw.Draw(captionText)
 
 
@@ -100,28 +105,31 @@ for line in messageWrap:
     lineCount += 1
 
 
-#crop to make make message fit nice
+# crop to make make message fit nice
 _, cropTop, _, cropBottom = font.getbbox(messageFill)
 captionText = captionText.crop((0, 0, W, lineCount * line_height + line_height + line_height))
 
-#captionText = captionText.resize((originalGif.width, originalGif.height))
+# captionText = captionText.resize((originalGif.width, originalGif.height))
 
 frames = []
+
+
 
 for frame in ImageSequence.Iterator(originalGif):
     frame = frame.copy()
     frame.thumbnail((480, 360))
 
-    new_frame = Image.new('RGB', (newGif.width, newGif.height + captionText.height), color="white")
+    new_frame = Image.new('RGBA', (newGif.width, newGif.height + captionText.height), (0, 0, 0, 0))
     new_frame.paste(captionText, (0, 0))
     new_frame.paste(frame, (0, captionText.height))
-    frames.append(new_frame)
+    new_frame.info = frame.info
+    frames.insert(0, new_frame)
 
 
 frames[0].info = originalGif.info
 
-#making the cool filename
+# making the cool filename
 outputFilename = "_".join(messageSplit[:6]) + "_[" + Path(inputFile).stem + "gif]_" + ".gif"
 
-#saving final gif
-frames[0].save(outputFilename, save_all=True, append_images=frames[1:])
+# saving final gif
+frames[0].save(outputFilename, save_all=True, append_images=frames[1:], disposal=2)
