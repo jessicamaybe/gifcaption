@@ -10,7 +10,7 @@ Into this:
 
 ![conan meme](./examples/haha_conan_is_an_alligator.gif)
 
-
+also includes a speech bubble meme generator as well
 
 # Using 
 
@@ -22,7 +22,6 @@ python captiongif.py [-i INPUT] string`
 requires:
 ```
 pillow
-ttf-roboto
 ```
 
 
