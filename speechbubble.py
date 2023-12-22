@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
-from PIL import Image, ImageDraw, ImageSequence, ImageFont, ImageFilter, GifImagePlugin
-import textwrap
+from PIL import Image, ImageDraw, ImageSequence, GifImagePlugin
 import io
-import sys
 import argparse
-import re
 from pathlib import Path
 
 GifImagePlugin.LOADING_STRATEGY = GifImagePlugin.LoadingStrategy.RGB_AFTER_DIFFERENT_PALETTE_ONLY
@@ -105,4 +102,4 @@ frames[0].info = originalGif.info
 outputFilename = Path(inputFile).stem + "_bubble" + ".gif"
 
 # saving final gif
-frames[0].save("whatever.gif", save_all=True, append_images=frames[1:], disposal=2)
+frames[0].save(outputFilename, save_all=True, append_images=frames[1:], disposal=2)
